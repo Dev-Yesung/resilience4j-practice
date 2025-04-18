@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: real_situation_retrospect
+
+server:
+  port: 8080
+
+
+resilience4j:
+  retry:
+    instances:
+      simpleRetryConfig:
+        baseConfig: default
+    configs:
+      default:
+        maxAttempts: 3
+        waitDuration: 1000
+        retryExceptions:
+          - resilience4j.ysng.real_situation_retrospect.skill_practice.exception.RetryException
+        ignoreExceptions:
+          - resilience4j.ysng.real_situation_retrospect.skill_practice.exception.IgnoreException
+
+
+#resilience4j.circuitbreaker:
+#  configs:
+#    default:
+#      slidingWindowType: COUNT_BASED
+#      minimumNumberOfCalls: 7                                   # ?? 7???? ??? CLOSE? ???? ????.
+#      slidingWindowSize: 10                                     # (minimumNumberOfCalls ????) 10?? ??? ???? ????.
+#      waitDurationInOpenState: 10s                              # OPEN ???? HALF_OPEN?? ??? ??? ??? ????
+#
+#      failureRateThreshold: 40                                  # slidingWindowSize ? ? %? recordException?? OPEN?? ?? ????
+#
+#      slowCallDurationThreshold: 3000                           # ? ms ?? ??? ???? ??? ??? ??? ????
+#      slowCallRateThreshold: 60                                 # slidingWindowSize ? ? %? slowCall?? OPEN?? ?? ????
+#
+#      permittedNumberOfCallsInHalfOpenState: 5                  # HALF_OPEN ???? 5???? CLOSE? ???? ????.
+#      automaticTransitionFromOpenToHalfOpenEnabled: true        # OPEN ???? ???? HALF_OPEN?? ? ????
+#
+#      eventConsumerBufferSize: 10                               # actuator? ?? ??? ?? ???
+#
+#      recordExceptions:
+#        - com.example.resilience4jdemo.exception.RecordException
+#      ignoreExceptions:
+#        - com.example.resilience4jdemo.exception.IgnoreException
+#  instances:
+#    simpleCircuitBreakerConfig:
+#      baseConfig: default
+#
+#management.endpoints.web.exposure.include: '*'
+#management.endpoint.health.show-details: always
+#
+#management.health.diskspace.enabled: false
+#management.health.circuitbreakers.enabled: true
+#
+#management.metrics.tags.application: ${spring.application.name}
+#management.metrics.distribution.percentiles-histogram.http.server.requests: true
+#management.metrics.distribution.percentiles-histogram.resilience4j.circuitbreaker.calls: true
