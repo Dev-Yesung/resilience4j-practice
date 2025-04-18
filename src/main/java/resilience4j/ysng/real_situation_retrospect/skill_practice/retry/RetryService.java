@@ -12,21 +12,39 @@ import resilience4j.ysng.real_situation_retrospect.skill_practice.exception.Retr
 public class RetryService {
 
 	@Retry(name = "simpleRetryConfig", fallbackMethod = "fallback")
-	public String process(
-		final String message
-	) {
-		return callAnotherServer(message);
+	public String process() {
+		return callAnotherServer();
 	}
 
-	private String callAnotherServer(
-		final String param
-	) {
+	public String callMyRetry() throws InterruptedException {
+		try {
+			int retryCount = 0;
+			while (retryCount < 3) {
+				try {
+					log.info("Retry count: {}", retryCount);
+					return callAnotherServer();
+				} catch (RetryException e) {
+					if (retryCount == 2) {
+						throw e;
+					}
+					Thread.sleep(1000L);
+					retryCount++;
+				}
+			}
+		} catch (RetryException | IgnoreException e) {
+			return fallback(e);
+		}
+
+		return "ok";
+	}
+
+	private String callAnotherServer() {
 		throw new RetryException("retry exception");
 		// throw new IgnoreException("ignore exception");
 	}
 
-	private String fallback(String param, Exception e) {
-		log.info("fallback! your request is {}", param);
+	private String fallback(Exception e) {
+		log.info("fallback! your request is done");
 		return "Recovered: " + e.toString();
 	}
 }

@@ -13,9 +13,12 @@ public class RetryController {
 	private final RetryService retryService;
 
 	@GetMapping("/api/retry-demo/call")
-	public String callRetryDemo(
-		@RequestParam String message
-	) {
-		return retryService.process(message);
+	public String callRetryDemo() {
+		return retryService.process();
+	}
+
+	@GetMapping("/api/retry-demo/my-call")
+	public String callMyRetry() throws InterruptedException {
+		return retryService.callMyRetry();
 	}
 }
