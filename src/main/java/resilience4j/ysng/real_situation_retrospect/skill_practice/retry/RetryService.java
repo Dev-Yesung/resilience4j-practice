@@ -16,26 +16,25 @@ public class RetryService {
 		return callAnotherServer();
 	}
 
+	private static final int MAX_ATTEMPTS = 3;
+	private static final long WAIT_DURATION = 1000L;
+
 	public String callMyRetry() throws InterruptedException {
-		try {
-			int retryCount = 0;
-			while (retryCount < 3) {
-				try {
-					log.info("Retry count: {}", retryCount);
-					return callAnotherServer();
-				} catch (RetryException e) {
-					if (retryCount == 2) {
-						throw e;
-					}
-					Thread.sleep(1000L);
-					retryCount++;
+		String message = null;
+		int retryCount = 0;
+		while (message == null && retryCount++ < MAX_ATTEMPTS) {
+			try {
+				log.info("Retry count: {}", retryCount);
+				message = callAnotherServer();
+			} catch (RetryException | IgnoreException e) {
+				if (e instanceof IgnoreException || retryCount == MAX_ATTEMPTS) {
+					message = fallback(e);
 				}
+				Thread.sleep(WAIT_DURATION);
 			}
-		} catch (RetryException | IgnoreException e) {
-			return fallback(e);
 		}
 
-		return "ok";
+		return message;
 	}
 
 	private String callAnotherServer() {
