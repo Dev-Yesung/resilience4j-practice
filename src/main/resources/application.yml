@@ -5,7 +5,6 @@ spring:
 server:
   port: 8080
 
-
 resilience4j:
   retry:
     instances:
@@ -20,39 +19,54 @@ resilience4j:
         ignoreExceptions:
           - resilience4j.ysng.real_situation_retrospect.skill_practice.exception.IgnoreException
 
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      slidingWindowType: COUNT_BASED
+      # 최소 7번까지는 무조건 CLOSE 로 가정하고 호출한다.
+      minimumNumberOfCalls: 7
+      # (minimumNumberOfCalls 이후로는) 10개의 요청을 기준으로 판단한다.
+      slidingWindowSize: 10
 
-#resilience4j.circuitbreaker:
-#  configs:
-#    default:
-#      slidingWindowType: COUNT_BASED
-#      minimumNumberOfCalls: 7                                   # ?? 7???? ??? CLOSE? ???? ????.
-#      slidingWindowSize: 10                                     # (minimumNumberOfCalls ????) 10?? ??? ???? ????.
-#      waitDurationInOpenState: 10s                              # OPEN ???? HALF_OPEN?? ??? ??? ??? ????
-#
-#      failureRateThreshold: 40                                  # slidingWindowSize ? ? %? recordException?? OPEN?? ?? ????
-#
-#      slowCallDurationThreshold: 3000                           # ? ms ?? ??? ???? ??? ??? ??? ????
-#      slowCallRateThreshold: 60                                 # slidingWindowSize ? ? %? slowCall?? OPEN?? ?? ????
-#
-#      permittedNumberOfCallsInHalfOpenState: 5                  # HALF_OPEN ???? 5???? CLOSE? ???? ????.
-#      automaticTransitionFromOpenToHalfOpenEnabled: true        # OPEN ???? ???? HALF_OPEN?? ? ????
-#
-#      eventConsumerBufferSize: 10                               # actuator? ?? ??? ?? ???
-#
-#      recordExceptions:
-#        - com.example.resilience4jdemo.exception.RecordException
-#      ignoreExceptions:
-#        - com.example.resilience4jdemo.exception.IgnoreException
-#  instances:
-#    simpleCircuitBreakerConfig:
-#      baseConfig: default
-#
-#management.endpoints.web.exposure.include: '*'
-#management.endpoint.health.show-details: always
-#
-#management.health.diskspace.enabled: false
-#management.health.circuitbreakers.enabled: true
-#
-#management.metrics.tags.application: ${spring.application.name}
-#management.metrics.distribution.percentiles-histogram.http.server.requests: true
-#management.metrics.distribution.percentiles-histogram.resilience4j.circuitbreaker.calls: true
+      # OPEN 상태에서 HALF_OPEN 으로 가려면 얼마나 기다릴 것인가?
+      waitDurationInOpenState: 10s
+      # slidingWindowSize 중 몇 %가 recordException 이면 OPEN 으로 만들 것인가?
+      failureRateThreshold: 40
+
+      # 몇 ms 동안 요청이 처리되지 않으면 실패로 간주할 것인가?
+      slowCallDurationThreshold: 3000
+      # slidingWindowSize 중 몇 %가 slowCall 이면 OPEN 으로 만들 것인가?
+      slowCallRateThreshold: 60
+
+      # HALF_OPEN 상태에서 5번까지는 CLOSE 로 가기위해 호출한다.
+      permittedNumberOfCallsInHalfOpenState: 5
+      # OPEN 상태에서 자동으로 HALF_OPEN 으로 갈 것인가?
+      automaticTransitionFromOpenToHalfOpenEnabled: true
+
+      # actuator 를 위한 이벤트 버퍼 사이즈
+      eventConsumerBufferSize: 10
+
+      recordExceptions:
+        - resilience4j.ysng.real_situation_retrospect.skill_practice.exception.RecordException
+      ignoreExceptions:
+        - resilience4j.ysng.real_situation_retrospect.skill_practice.exception.IgnoreException
+
+  instances:
+    simpleCircuitBreakerConfig:
+      baseConfig: default
+
+management:
+  endpoints.web.exposure.include: '*'
+
+  endpoint.health.show-details: always
+
+  health:
+    diskspace.enabled: false
+    circuitbreakers.enabled: true
+
+  metrics:
+    tags.application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        resilience4j.circuitbreaker.calls: true
